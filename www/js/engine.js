@@ -133,16 +133,19 @@ T.setGlobalUniforms = function() {
 };
 
 T.addGameObject = function(info) {
-
-    T.gameObjects.push({
+    var obj = {
         model: info.model,
         mMatrix: mat4.create()
-    });
+    };
 
+    if (info.pos) {
+        mat4.translate(obj.mMatrix, obj.mMatrix, info.pos);
+    }
+
+    T.gameObjects.push(obj);
 };
 
 T.draw = function() {
-
     gl.viewport(0, 0, T.viewPortWidth, T.viewPortHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -167,5 +170,4 @@ T.draw = function() {
 
         gl.drawArrays(gl.TRIANGLES, 0, modelData.polygonCount);
     }
-
 };

@@ -22,7 +22,8 @@ $(function() {
         T.initBuffers();
 
         T.addGameObject({
-            model: 'african_head'
+            model: 'african_head',
+            pos: [0, 0, 0]
         });
 
         T.draw();
