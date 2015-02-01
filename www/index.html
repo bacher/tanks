@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Tanks</title>
+    <link href="styles/main.css" rel="stylesheet" />
+</head>
+<body>
+<canvas id="game"></canvas>
+<script src="bower_components/jquery/dist/jquery.min.js"></script>
+<script src="bower_components/gl-matrix/dist/gl-matrix-min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/loader.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/engine.js"></script>
+
+<script type="application/x-shader" id="vertex-shader">
+uniform mat4 uPerspMatrix;
+uniform mat4 uCameraMatrix;
+uniform mat4 uModelMatrix;
+
+uniform vec3 uLightDir;
+
+attribute vec3 aVertexPosition;
+attribute vec3 aVertexNormal;
+attribute vec2 aVertexUvs;
+
+varying vec3 normal;
+varying vec3 lightDir;
+varying vec2 uvs;
+
+void main(void) {
+    normal = aVertexNormal;
+    lightDir = uLightDir;
+    uvs = aVertexUvs;
+
+    gl_Position = uPerspMatrix * uCameraMatrix * uModelMatrix * vec4(aVertexPosition, 1.0);
+}
+</script>
+<script type="application/x-shader" id="fragment-shader">
+precision mediump float;
+
+uniform sampler2D uSampler;
+
+varying vec3 lightDir;
+varying vec3 normal;
+varying vec2 uvs;
+
+void main(void) {
+    float intens = 1.0;//dot(lightDir, normalize(normal));
+    vec4 tex = texture2D(uSampler, uvs);
+
+    gl_FragColor = vec4(tex.r * intens, tex.g * intens, tex.b * intens, 1.0);
+}
+</script>
+</body>
+</html>
