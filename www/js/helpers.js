@@ -31,12 +31,15 @@ T.extractPolygonsFromJSON = function(model) {
 
     var includeNormals = !!model.metadata.normals;
 
+    var materials = model.materials;
+
     var data = {
         parts: []
     };
 
     for (var m = 0; m < materialsCount; ++m) {
         data.parts.push({
+            partName: materials[m].DbgName,
             polygons: [],
             normals: [],
             uvs: []
@@ -58,10 +61,6 @@ T.extractPolygonsFromJSON = function(model) {
 
         for (var j = 0; j < 3; j++) {
             var vOffset = vertices[j] * 3;
-
-            if (!part) {
-                debugger
-            }
 
             part.polygons.push(
                 model.vertices[vOffset],
@@ -92,3 +91,7 @@ T.extractPolygonsFromJSON = function(model) {
 
     return data;
 };
+
+function deg(a) {
+    return a * Math.PI / 180;
+}

@@ -1,40 +1,60 @@
 
 T.loadResources = function() {
 
+    T.createModel('ausfb');
+
     return Promise.all([
         //T.loadModel('models/african_head/african_head.obj.json'),
         //T.loadTexture('models/african_head/african_head_diffuse.png'),
-        T.loadModel('models/ausfb/ausfb.obj.json'),
-        T.loadTexture('models/ausfb/Turret.png'),
-        T.loadTexture('models/ausfb/Track.png'),
-        T.loadTexture('models/ausfb/Turret_2.png'),
-        T.loadTexture('models/ausfb/Body_2.png'),
-        T.loadTexture('models/ausfb/Body_1.png')
+        T.loadModel('models/ausfb/ausfb.obj.json', 'ausfb', {
+            link: {
+                Body_2: {
+                    Turret_2: null
+                }
+            }
+        }),
+        T.loadTexture('models/ausfb/Turret.png', 'ausfb', 'diffuse', 'Turret'),
+        T.loadTexture('models/ausfb/Turret_2.png', 'ausfb', 'diffuse', 'Turret_2'),
+        T.loadTexture('models/ausfb/Track.png', 'ausfb', 'diffuse', 'Track'),
+        T.loadTexture('models/ausfb/Body_1.png', 'ausfb', 'diffuse', 'Body_1'),
+        T.loadTexture('models/ausfb/Body_2.png', 'ausfb', 'diffuse', 'Body_2')
 
-    ]).then(function(data) {
-        T.modelsData['ausfb'] = {
-            json: data[0],
-            imgs: {
-                diffuse: data.slice(1)
-            },
-            textures: {},
-            parts: []
-        };
-    });
+    ]);
 };
 
-T.loadModel = function(path) {
+T.createModel = function(name) {
+    T.modelsData[name] = {
+        json: null,
+        images: {},
+        textures: {},
+        parts: [],
+        params: {}
+    };
+};
+
+T.loadModel = function(path, name, params) {
     return new Promise(function(resolve) {
-        $.getJSON(path).then(resolve);
+        $.getJSON(path).then(function(model) {
+            T.modelsData[name].json = model;
+            T.modelsData[name].params = params;
+
+            resolve();
+        });
     });
 };
 
-T.loadTexture = function(path) {
+T.loadTexture = function(path, modelName, type, name) {
     return new Promise(function(resolve) {
         var img = new Image();
 
         img.onload = function() {
-            resolve(img);
+            var images = T.modelsData[modelName].images;
+
+            images[type] = images[type] || {};
+
+            images[type][name] = img;
+
+            resolve();
         };
 
         img.src = path;

@@ -74,6 +74,7 @@ T.initBuffers = function() {
         rawData.parts.forEach(function(partData) {
 
             var part = {
+                partName: partData.partName,
                 buffers: {
                     aVertexPosition: {
                         buffer: T.initBuffer(partData.polygons),
@@ -96,10 +97,14 @@ T.initBuffers = function() {
 
         });
 
-        for (var texName in modelData.imgs) {
-            modelData.textures[texName] = modelData.imgs[texName].map(function(img, i) {
-                return T.initTexture(img, i);
-            });
+        for (var texType in modelData.images) {
+            var images = modelData.images[texType];
+
+            modelData.textures[texType] = modelData.textures[texType] || {};
+
+            for (var texName in images) {
+                modelData.textures[texType][texName] = T.initTexture(images[texName]);
+            }
         }
     }
 };
@@ -146,19 +151,41 @@ T.setGlobalUniforms = function() {
 T.addGameObject = function(info) {
     var obj = {
         model: info.model,
-        mMatrix: mat4.create()
+        pos: info.pos || [0, 0, 0],
+        scale: info.scale && [info.scale, info.scale, info.scale] || [1, 1, 1],
+        rot: info.rot || [0, 0, 0],
+        dirty: true,
+        M: null,
+        parts: {}
     };
 
-    if (info.pos) {
-        mat4.translate(obj.mMatrix, obj.mMatrix, info.pos);
-    }
-
-    if (info.scale) {
-        mat4.scale(obj.mMatrix, obj.mMatrix, [info.scale, info.scale, info.scale]);
+    var model = T.modelsData[obj.model];
+    if (model.params.link) {
+        extractPartNames(model.params.link, obj.parts);
     }
 
     T.gameObjects.push(obj);
+
+    return obj;
 };
+
+function extractPartNames(link, storage) {
+    for (var partName in link) {
+        if (!storage[partName]) {
+            storage[partName] = {
+                partName: partName,
+                pos: [0, 0, 0],
+                rot: [0, 0, 0],
+                scale: [1, 1, 1],
+                M: null
+            };
+
+            if (link[partName] !== null) {
+                extractPartNames(link[partName], storage);
+            }
+        }
+    }
+}
 
 T.draw = function() {
     gl.viewport(0, 0, T.viewPortWidth, T.viewPortHeight);
@@ -171,13 +198,27 @@ T.draw = function() {
     for (var i = 0; i < T.gameObjects.length; ++i) {
         var obj = T.gameObjects[i];
 
-        gl.uniformMatrix4fv(T.shaderProgram.uniforms.uModelMatrix, false, obj.mMatrix);
+        if (obj.dirty) {
+            T.updateGameObjectMatrix(obj);
+        }
 
         var modelData = T.modelsData[obj.model];
 
         for (var partId = 0; partId < modelData.parts.length; ++partId) {
 
             var part = modelData.parts[partId];
+
+            var objPart = obj.parts[part.partName];
+
+            var M;
+
+            if (objPart) {
+                M = objPart.M;
+            } else {
+                M = obj.M;
+            }
+
+            gl.uniformMatrix4fv(T.shaderProgram.uniforms.uModelMatrix, false, M);
 
             for (var attrName in attributes) {
                 var pointer = attributes[attrName];
@@ -187,12 +228,47 @@ T.draw = function() {
                 gl.vertexAttribPointer(pointer, bufferInfo.size, gl.FLOAT, false, 0, 0);
             }
 
-            gl.bindTexture(gl.TEXTURE_2D, modelData.textures.diffuse[partId]);
+            gl.bindTexture(gl.TEXTURE_2D, modelData.textures.diffuse[part.partName]);
 
             gl.drawArrays(gl.TRIANGLES, 0, part.polygonsCount);
         }
     }
 };
+
+T.updateGameObjectMatrix = function(obj, inLink) {
+    var M = obj.M = mat4.create();
+
+    mat4.translate(M, M, obj.pos);
+    mat4.scale(M, M, obj.scale);
+    mat4.rotateX(M, M, obj.rot[0]);
+    mat4.rotateY(M, M, obj.rot[1]);
+    mat4.rotateZ(M, M, obj.rot[2]);
+
+    if (!inLink) {
+        var model = T.modelsData[obj.model];
+
+        if (model.params.link) {
+            updateRecursively(model.params.link, M, obj.parts);
+        }
+
+        obj.dirty = false;
+    }
+};
+
+function updateRecursively(partNames, parentM, parts) {
+    for (var partName in partNames) {
+
+        var part = parts[partName];
+
+        T.updateGameObjectMatrix(part, true);
+
+        mat4.mul(part.M, parentM, part.M);
+
+        if (partNames[partName]) {
+            updateRecursively(partNames[partName], part.M, parts);
+        }
+    }
+}
 
 T.logic = function() {
 
@@ -225,5 +301,4 @@ T.updateInput = function() {
 
         mat4.translate(T.cameraMatrix, T.cameraMatrix, move);
     }
-
 };

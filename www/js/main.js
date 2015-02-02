@@ -33,13 +33,15 @@ $(function() {
 
         T.initBuffers();
 
-        T.addGameObject({
+        var tank = T.addGameObject({
             model: 'ausfb',
-            pos: [0, -1, -5]
+            pos: [0, -1, -5],
+            rot: [0, deg(130), 0]
         });
 
-        T.captureInput();
+        tank.parts['Turret_2'].rot[1] = deg(45);
 
+        T.captureInput();
 
         setInterval(T.logic, 1000 / 10);
         setInterval(T.draw, 1000 / 5);
