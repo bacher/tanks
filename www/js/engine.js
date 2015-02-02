@@ -71,25 +71,35 @@ T.initBuffers = function() {
 
         var rawData = T.extractPolygonsFromJSON(modelData.json);
 
-        modelData.buffers = {
-            aVertexPosition: {
-                buffer: T.initBuffer(rawData.polygons),
-                size: 3
-            },
-            aVertexUvs: {
-                buffer: T.initBuffer(rawData.uvs),
-                size: 2
-            },
-            aVertexNormal: {
-                buffer: T.initBuffer(rawData.normals),
-                size: 3
-            }
-        };
+        rawData.parts.forEach(function(partData) {
 
-        modelData.polygonCount = rawData.polygons.length / 3;
+            var part = {
+                buffers: {
+                    aVertexPosition: {
+                        buffer: T.initBuffer(partData.polygons),
+                        size: 3
+                    },
+                    aVertexUvs: {
+                        buffer: T.initBuffer(partData.uvs),
+                        size: 2
+                    },
+                    aVertexNormal: {
+                        buffer: T.initBuffer(partData.normals),
+                        size: 3
+                    }
+                }
+            };
+
+            part.polygonsCount = partData.polygons.length / 3;
+
+            modelData.parts.push(part);
+
+        });
 
         for (var texName in modelData.imgs) {
-            modelData.textures[texName] = T.initTexture(modelData.imgs[texName]);
+            modelData.textures[texName] = modelData.imgs[texName].map(function(img) {
+                return T.initTexture(img);
+            });
         }
     }
 };
@@ -164,15 +174,20 @@ T.draw = function() {
 
         var modelData = T.modelsData[obj.model];
 
-        for (var attrName in attributes) {
-            var pointer = attributes[attrName];
-            var bufferInfo = modelData.buffers[attrName];
+        for (var partId = 0; partId < modelData.parts.length; ++partId) {
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.buffer);
-            gl.vertexAttribPointer(pointer, bufferInfo.size, gl.FLOAT, false, 0, 0);
+            var part = modelData.parts[partId];
+
+            for (var attrName in attributes) {
+                var pointer = attributes[attrName];
+                var bufferInfo = part.buffers[attrName];
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.buffer);
+                gl.vertexAttribPointer(pointer, bufferInfo.size, gl.FLOAT, false, 0, 0);
+            }
+
+            gl.drawArrays(gl.TRIANGLES, 0, part.polygonsCount);
         }
-
-        gl.drawArrays(gl.TRIANGLES, 0, modelData.polygonCount);
     }
 };
 
