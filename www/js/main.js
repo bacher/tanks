@@ -1,8 +1,20 @@
 
 var T = {
     modelsData: {},
-    gameObjects: []
+    loadModels: [],
+    gameObjects: [],
+    input: {
+        keyState: {}
+    },
+    cameraSpeed: 0.1
 };
+
+//T.loadModels.push(
+//    'african_head',
+//    'ausfb'
+//);
+//
+//T.loadTextures();
 
 $(function() {
 
@@ -22,11 +34,15 @@ $(function() {
         T.initBuffers();
 
         T.addGameObject({
-            model: 'african_head',
+            model: 'ausfb',
             pos: [0, 0, 0]
         });
 
-        T.draw();
+        T.captureInput();
+
+
+        setInterval(T.logic, 1000 / 10);
+        setInterval(T.draw, 1000 / 5);
 
     });
 

@@ -35,15 +35,15 @@ T.extractPolygonsFromJSON = function(model) {
     };
 
     for (var i = 0; i < facesCount; i++) {
-        var offset = i * 11;
+        var offset = i * 8;
         var face = [model.faces[offset + 1], model.faces[offset + 2], model.faces[offset + 3]];
         var uvs = [model.faces[offset + 5], model.faces[offset + 6], model.faces[offset + 7]];
-        var normalsIds = [model.faces[offset + 8], model.faces[offset + 9], model.faces[offset + 10]];
+        //var normalsIds = [model.faces[offset + 8], model.faces[offset + 9], model.faces[offset + 10]];
 
         for (var j = 0; j < 3; j++) {
             var v0offset = face[j] * 3;
             var uvOffset = uvs[j] * 2;
-            var nOffset = normalsIds[j] * 3;
+            //var nOffset = normalsIds[j] * 3;
 
             data.polygons.push(
                 model.vertices[v0offset],
@@ -52,9 +52,9 @@ T.extractPolygonsFromJSON = function(model) {
             );
 
             data.normals.push(
-                model.normals[nOffset],
-                model.normals[nOffset + 1],
-                model.normals[nOffset + 2]
+                0,//model.normals[nOffset],
+                0,//model.normals[nOffset + 1],
+                0//model.normals[nOffset + 2]
             );
             data.uvs.push(
                 model.uvs[0][uvOffset],

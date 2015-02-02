@@ -142,6 +142,10 @@ T.addGameObject = function(info) {
         mat4.translate(obj.mMatrix, obj.mMatrix, info.pos);
     }
 
+    if (info.scale) {
+        mat4.scale(obj.mMatrix, obj.mMatrix, [info.scale, info.scale, info.scale]);
+    }
+
     T.gameObjects.push(obj);
 };
 
@@ -170,4 +174,38 @@ T.draw = function() {
 
         gl.drawArrays(gl.TRIANGLES, 0, modelData.polygonCount);
     }
+};
+
+T.logic = function() {
+
+    T.updateInput();
+
+};
+
+T.updateInput = function() {
+    var state = T.input.keyState;
+
+    var move = [0, 0, 0];
+
+    if (state.forward && !state.back) {
+        move[2] += 1;
+    } else if (state.back) {
+        move[2] -= 1;
+    }
+
+    if (state.left && !state.right) {
+        move[0] += 1;
+    } else if (state.right) {
+        move[0] -= 1;
+    }
+
+    if (move[0] || move[2]) {
+        vec3.normalize(move, move);
+
+        move[0] *= T.cameraSpeed;
+        move[2] *= T.cameraSpeed;
+
+        mat4.translate(T.cameraMatrix, T.cameraMatrix, move);
+    }
+
 };
