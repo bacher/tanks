@@ -35,7 +35,7 @@ $(function() {
 
         T.addGameObject({
             model: 'ausfb',
-            pos: [0, 0, 0]
+            pos: [0, -1, -5]
         });
 
         T.captureInput();

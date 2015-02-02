@@ -97,8 +97,8 @@ T.initBuffers = function() {
         });
 
         for (var texName in modelData.imgs) {
-            modelData.textures[texName] = modelData.imgs[texName].map(function(img) {
-                return T.initTexture(img);
+            modelData.textures[texName] = modelData.imgs[texName].map(function(img, i) {
+                return T.initTexture(img, i);
             });
         }
     }
@@ -114,6 +114,7 @@ T.initBuffer = function(data) {
 
 T.initTexture = function(img) {
     var texture = gl.createTexture();
+
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
@@ -185,6 +186,8 @@ T.draw = function() {
                 gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.buffer);
                 gl.vertexAttribPointer(pointer, bufferInfo.size, gl.FLOAT, false, 0, 0);
             }
+
+            gl.bindTexture(gl.TEXTURE_2D, modelData.textures.diffuse[partId]);
 
             gl.drawArrays(gl.TRIANGLES, 0, part.polygonsCount);
         }
