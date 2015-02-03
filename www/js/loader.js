@@ -1,12 +1,14 @@
 
 T.loadResources = function() {
 
+    T.createModel('african_head');
     T.createModel('ausfb');
     T.createModel('land');
 
     return Promise.all([
-        //T.loadModel('models/african_head/african_head.obj.json'),
-        //T.loadTexture('models/african_head/african_head_diffuse.png'),
+        T.loadModel('models/african_head/african_head.obj.json', 'african_head'),
+        T.loadTexture('models/african_head/african_head_diffuse.png', 'african_head', 'diffuse', 'default'),
+
         T.loadModel('models/ausfb/ausfb.obj.json', 'ausfb', {
             link: {
                 Body_2: {
@@ -38,7 +40,10 @@ T.loadModel = function(path, name, params) {
     return new Promise(function(resolve) {
         $.getJSON(path).then(function(model) {
             T.modelsData[name].json = model;
-            T.modelsData[name].params = params;
+
+            if (params) {
+                $.extend(T.modelsData[name].params, params);
+            }
 
             resolve();
         });

@@ -37,25 +37,31 @@ $(function() {
             model: 'land'
         });
 
-        //T.player = {
-        //    tank: T.addGameObject({
-        //        model: 'ausfb',
-        //        pos: [0, -1, -5]
-        //    }),
-        //    tankSpeed: 1
-        //};
-        //
-        //window.tank = T.player.tank;
-        //
-        //tank.parts['Turret_2'].rot[1] = deg(45);
-        //
-        //tank.dir = [0, 0, -1];
-        //tank.cameraFix = true;
+        var head = T.addGameObject({
+            model: 'african_head',
+            scale: 2,
+            pos: [0, 5, 0]
+        });
+
+        T.player = {
+            tank: T.addGameObject({
+                model: 'ausfb',
+                pos: [0, 0, 0]
+            }),
+            tankSpeed: 1
+        };
+
+        window.tank = T.player.tank;
+
+        tank.parts['Turret_2'].rot[1] = deg(45);
+
+        tank.dir = [0, 0, -1];
+        tank.cameraFix = true;
 
         T.captureInput();
 
-        setInterval(T.logic, 1000 / 3);
-        setInterval(T.draw, 1000 / 1);
+        setInterval(T.logic, 1000 / 30);
+        setInterval(T.draw, 1000 / 10);
 
     });
 

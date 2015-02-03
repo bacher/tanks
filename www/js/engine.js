@@ -89,10 +89,10 @@ T.initBuffers = function() {
 
                 var part = {
                     partName: partData.partName,
-                    shaderName: 'normal',
+                    shaderName: partData.shaderName || modelData.params.shaderName || 'normal',
                     buffers: {
                         aVertexPosition: {
-                            buffer: T.initBuffer(partData.polygons),
+                            buffer: T.initBuffer(partData.vertices),
                             size: 3
                         },
                         aVertexUvs: {
@@ -106,7 +106,7 @@ T.initBuffers = function() {
                     }
                 };
 
-                part.polygonsCount = partData.polygons.length / 3;
+                part.verticesCount = partData.vertices.length / 3;
 
                 modelData.parts.push(part);
 
@@ -119,13 +119,13 @@ T.initBuffers = function() {
                 buffers : {
                     aVertexPosition: {
                         buffer: T.initBuffer([
-                            -5, 0, -5,
-                            5, 3, -5,
-                            5, 0, 5,
+                            -1, 0, -1,
+                            1, 0, -1,
+                            1, 0, 1,
 
-                            5, 0, 5,
-                            -5, 0, 5,
-                            -5, -1, -5
+                            1, 0, 1,
+                            -1, 0, 1,
+                            -1, 0, -1
                         ]),
                         size: 3
                     },
@@ -146,12 +146,12 @@ T.initBuffers = function() {
                         size: 3
                     }
                 },
-                polygonsCount: 2
+                verticesCount: 6
             });
 
-            //var M = modelData.params.M = mat4.create();
+            var M = modelData.params.M = mat4.create();
 
-            //mat4.scale(M, M, 100);
+            mat4.scale(M, M, [100, 100, 100]);
         }
 
         for (var texType in modelData.images) {
@@ -196,12 +196,12 @@ T.initCameraMatrix = function() {
         M: mat4.create()
     };
 
-    mat4.translate(T.camera.M, T.camera.M, [0, 5, 0]);
+    mat4.translate(T.camera.M, T.camera.M, [0, 0, -7]);
 };
 
 T.setGlobalUniforms = function(shader) {
     gl.uniformMatrix4fv(shader.uniforms.uPerspMatrix, false, T.perspMatrix);
-    gl.uniformMatrix4fv(shader.uniforms.uCameraMatrix, false, identifyM);//T.camera.M);
+    gl.uniformMatrix4fv(shader.uniforms.uCameraMatrix, false, T.camera.M);
 
     gl.uniform3fv(shader.uniforms.uLightDir, T.globalLightDir);
 
@@ -284,7 +284,6 @@ T.draw = function() {
             gl.uniformMatrix4fv(shader.uniforms.uModelMatrix, false, M);
 
             for (var attrName in shader.attributes) {
-                debugger
                 var pointer = shader.attributes[attrName];
                 var bufferInfo = part.buffers[attrName];
 
@@ -292,9 +291,9 @@ T.draw = function() {
                 gl.vertexAttribPointer(pointer, bufferInfo.size, gl.FLOAT, false, 0, 0);
             }
 
-            //gl.bindTexture(gl.TEXTURE_2D, modelData.textures.diffuse[part.partName]);
+            gl.bindTexture(gl.TEXTURE_2D, modelData.textures.diffuse[part.partName]);
 
-            gl.drawArrays(gl.TRIANGLES, 0, part.polygonsCount);
+            gl.drawArrays(gl.TRIANGLES, 0, part.verticesCount);
         }
     }
 };

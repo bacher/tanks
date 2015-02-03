@@ -63,7 +63,8 @@ T.extractPolygonsFromJSON = function(model) {
     for (var m = 0; m < materialsCount; ++m) {
         data.parts.push({
             partName: materials[m].DbgName,
-            polygons: [],
+            shaderName: materials[m].ShaderName || '',
+            vertices: [],
             normals: [],
             uvs: []
         });
@@ -85,7 +86,7 @@ T.extractPolygonsFromJSON = function(model) {
         for (var j = 0; j < 3; j++) {
             var vOffset = vertices[j] * 3;
 
-            part.polygons.push(
+            part.vertices.push(
                 model.vertices[vOffset],
                 model.vertices[vOffset + 1],
                 model.vertices[vOffset + 2]
