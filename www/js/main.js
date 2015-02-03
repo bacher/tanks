@@ -33,11 +33,14 @@ $(function() {
 
         T.initBuffers();
 
+        //var land = T.addGameObject({
+        //    model: 'land'
+        //});
+
         T.player = {
             tank: T.addGameObject({
                 model: 'ausfb',
                 pos: [0, -1, -5]
-                //rot: [0, deg(30), 0]
             }),
             tankSpeed: 1
         };

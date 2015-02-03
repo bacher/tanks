@@ -19,8 +19,31 @@ T.resizeViewPort = function() {
     T.viewPortHeight = T.canvas.height = $body.height();
 };
 
-T.getShaderText = function(id) {
-    return $('#' + id).text();
+T.getShaderInfo = function(name, clas) {
+    var $shader = $('.' + clas + '[data-name="' + name + '"]');
+
+    var info = {
+        code: $shader.text(),
+        uniforms: []
+    };
+
+    var uniformsString = $shader.data('uniforms');
+
+    if (uniformsString) {
+        info.uniforms = uniformsString.split(' ');
+    }
+
+    if (clas === 'vertex-shader') {
+        info.attributes = [];
+
+        var attributesString = $shader.data('attributes');
+
+        if (attributesString) {
+            info.attributes = attributesString.split(' ');
+        }
+    }
+
+    return info;
 };
 
 T.extractPolygonsFromJSON = function(model) {

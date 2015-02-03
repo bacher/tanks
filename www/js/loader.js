@@ -2,6 +2,7 @@
 T.loadResources = function() {
 
     T.createModel('ausfb');
+    T.createModel('land');
 
     var initModelM = mat4.create();
     //mat4.rotateY(initModelM, initModelM, Math.PI / 2);
@@ -21,8 +22,9 @@ T.loadResources = function() {
         T.loadTexture('models/ausfb/Turret_2.png', 'ausfb', 'diffuse', 'Turret_2'),
         T.loadTexture('models/ausfb/Track.png', 'ausfb', 'diffuse', 'Track'),
         T.loadTexture('models/ausfb/Body_1.png', 'ausfb', 'diffuse', 'Body_1'),
-        T.loadTexture('models/ausfb/Body_2.png', 'ausfb', 'diffuse', 'Body_2')
+        T.loadTexture('models/ausfb/Body_2.png', 'ausfb', 'diffuse', 'Body_2'),
 
+        T.loadTexture('models/land/land-1.jpg', 'land', 'diffuse', 'land')
     ]);
 };
 

@@ -15,17 +15,18 @@
 <script src="js/input.js"></script>
 <script src="js/engine.js"></script>
 
-<script type="application/x-shader" id="vertex-shader">
+<script type="application/x-shader" class="vertex-shader" data-name="normal"
+        data-uniforms="uPerspMatrix uCameraMatrix uModelMatrix uInitModelMatrix uLightDir"
+        data-attributes="aVertexPosition aVertexUvs aVertexNormal">
 uniform mat4 uPerspMatrix;
 uniform mat4 uCameraMatrix;
 uniform mat4 uModelMatrix;
 uniform mat4 uInitModelMatrix;
-
 uniform vec3 uLightDir;
 
 attribute vec3 aVertexPosition;
-attribute vec3 aVertexNormal;
 attribute vec2 aVertexUvs;
+attribute vec3 aVertexNormal;
 
 varying vec3 normal;
 varying vec3 lightDir;
@@ -39,7 +40,51 @@ void main(void) {
     gl_Position = uPerspMatrix * uCameraMatrix * uModelMatrix * uInitModelMatrix * vec4(aVertexPosition, 1.0);
 }
 </script>
-<script type="application/x-shader" id="fragment-shader">
+<script type="application/x-shader" class="fragment-shader" data-name="normal"
+        data-uniforms="uSampler">
+precision mediump float;
+
+uniform sampler2D uSampler;
+
+varying vec3 lightDir;
+varying vec3 normal;
+varying vec2 uvs;
+
+void main(void) {
+    float intens = 1.0;//dot(lightDir, normalize(normal));
+    vec4 tex = texture2D(uSampler, uvs);
+
+    gl_FragColor = vec4(tex.r * intens, tex.g * intens, tex.b * intens, 1.0);
+}
+</script>
+
+<script type="application/x-shader" class="vertex-shader" data-name="repeat"
+        data-uniforms="uPerspMatrix uCameraMatrix uModelMatrix uInitModelMatrix uLightDir"
+        data-attributes="aVertexPosition aVertexUvs aVertexNormal">
+uniform mat4 uPerspMatrix;
+uniform mat4 uCameraMatrix;
+uniform mat4 uModelMatrix;
+uniform mat4 uInitModelMatrix;
+uniform vec3 uLightDir;
+
+attribute vec3 aVertexPosition;
+attribute vec2 aVertexUvs;
+attribute vec3 aVertexNormal;
+
+varying vec3 normal;
+varying vec3 lightDir;
+varying vec2 uvs;
+
+void main(void) {
+    normal = aVertexNormal;
+    lightDir = uLightDir;
+    uvs = aVertexUvs;
+
+    gl_Position = uPerspMatrix * uCameraMatrix * uModelMatrix * uInitModelMatrix * vec4(aVertexPosition, 1.0);
+}
+</script>
+<script type="application/x-shader" class="fragment-shader" data-name="repeat"
+        data-uniforms="uSampler">
 precision mediump float;
 
 uniform sampler2D uSampler;

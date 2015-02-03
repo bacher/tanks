@@ -1,46 +1,51 @@
 'use strict';
 
 T.initShaders = function() {
-    T.shaderProgram = {
-        program: null,
-        attributes: {},
-        uniforms: {}
-    };
+    T.shaderPrograms = {};
 
-    var vertexShader = T.getShader('fragment-shader', gl.FRAGMENT_SHADER);
-    var fragmentShader = T.getShader('vertex-shader', gl.VERTEX_SHADER);
+    T.getShadersNames().forEach(function(name) {
 
-    var program = T.shaderProgram.program = gl.createProgram();
+        var vertexInfo = T.getShader(name, 'vertex-shader', gl.VERTEX_SHADER);
+        var fragmentInfo = T.getShader(name, 'fragment-shader', gl.FRAGMENT_SHADER);
 
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
+        var shader = T.shaderPrograms[name] = {
+            program: gl.createProgram(),
+            attributes: {},
+            uniforms: {}
+        };
 
-    gl.linkProgram(program);
+        gl.attachShader(shader.program, vertexInfo.shader);
+        gl.attachShader(shader.program, fragmentInfo.shader);
 
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        alert('Could not initialise shaders');
-    }
+        gl.linkProgram(shader.program);
 
-    gl.useProgram(program);
+        if (!gl.getProgramParameter(shader.program, gl.LINK_STATUS)) {
+            alert('Could not initialise shaders');
+        }
 
-    T.initAttribute('aVertexPosition');
-    T.initAttribute('aVertexNormal');
-    T.initAttribute('aVertexUvs');
+        gl.useProgram(shader.program);
 
-    T.initUniform('uPerspMatrix');
-    T.initUniform('uCameraMatrix');
-    T.initUniform('uModelMatrix');
-    T.initUniform('uInitModelMatrix');
-    T.initUniform('uLightDir');
-    T.initUniform('uSampler');
+        $.unique([].concat(vertexInfo.uniforms).concat(fragmentInfo.uniforms)).forEach(function(uniformName) {
+            T.initUniform(shader, uniformName);
+        });
+
+        vertexInfo.attributes.forEach(function(attributeName) {
+            T.initAttribute(shader, attributeName);
+        });
+
+    });
 };
 
-T.getShader = function(id, type) {
-    var code = T.getShaderText(id);
+T.getShadersNames = function() {
+    return ['normal', 'repeat'];
+};
+
+T.getShader = function(name, clas, type) {
+    var info = T.getShaderInfo(name, clas);
 
     var shader = gl.createShader(type);
 
-    gl.shaderSource(shader, code);
+    gl.shaderSource(shader, info.code);
     gl.compileShader(shader);
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
@@ -48,16 +53,20 @@ T.getShader = function(id, type) {
         return null;
     }
 
-    return shader;
+    return {
+        shader: shader,
+        uniforms: info.uniforms,
+        attributes: info.attributes
+    };
 };
 
-T.initAttribute = function(name) {
-    var attr = T.shaderProgram.attributes[name] = gl.getAttribLocation(T.shaderProgram.program, name);
+T.initAttribute = function(shader, name) {
+    var attr = shader.attributes[name] = gl.getAttribLocation(shader.program, name);
     gl.enableVertexAttribArray(attr);
 };
 
-T.initUniform = function(name) {
-    T.shaderProgram.uniforms[name] = gl.getUniformLocation(T.shaderProgram.program, name);
+T.initUniform = function(shader, name) {
+    shader.uniforms[name] = gl.getUniformLocation(shader.program, name);
 };
 
 T.initWebGL = function() {
@@ -70,33 +79,70 @@ T.initBuffers = function() {
 
         var modelData = T.modelsData[modelName];
 
-        var rawData = T.extractPolygonsFromJSON(modelData.json);
+        if (modelData.json) {
 
-        rawData.parts.forEach(function(partData) {
+            var rawData = T.extractPolygonsFromJSON(modelData.json);
 
-            var part = {
-                partName: partData.partName,
-                buffers: {
+            rawData.parts.forEach(function(partData) {
+
+                var part = {
+                    partName: partData.partName,
+                    shaderName: 'normal',
+                    buffers: {
+                        aVertexPosition: {
+                            buffer: T.initBuffer(partData.polygons),
+                            size: 3
+                        },
+                        aVertexUvs: {
+                            buffer: T.initBuffer(partData.uvs),
+                            size: 2
+                        },
+                        aVertexNormal: {
+                            buffer: T.initBuffer(partData.normals),
+                            size: 3
+                        }
+                    }
+                };
+
+                part.polygonsCount = partData.polygons.length / 3;
+
+                modelData.parts.push(part);
+
+            });
+
+        } else {
+            modelData.parts.push({
+                partName: modelName,
+                shaderName: 'repeat',
+                buffers : {
                     aVertexPosition: {
-                        buffer: T.initBuffer(partData.polygons),
+                        buffer: [
+                            -0.5, 0, -0.5,
+                            0.5, 0, -0.5,
+                            0.5, 0, 0.5,
+
+                            0.5, 0, 0.5,
+                            -0.5, 0, 0.5,
+                            -0.5, 0, -0.5
+                        ],
                         size: 3
                     },
                     aVertexUvs: {
-                        buffer: T.initBuffer(partData.uvs),
+                        buffer: [
+                            0, 0,
+                            1, 0,
+                            1, 1,
+
+                            1, 1,
+                            0, 1,
+                            0, 0
+                        ],
                         size: 2
-                    },
-                    aVertexNormal: {
-                        buffer: T.initBuffer(partData.normals),
-                        size: 3
                     }
-                }
-            };
-
-            part.polygonsCount = partData.polygons.length / 3;
-
-            modelData.parts.push(part);
-
-        });
+                },
+                polygonsCount: 2
+            });
+        }
 
         for (var texType in modelData.images) {
             var images = modelData.images[texType];
@@ -142,12 +188,16 @@ T.initCameraMatrix = function() {
 };
 
 T.setGlobalUniforms = function() {
-    gl.uniformMatrix4fv(T.shaderProgram.uniforms.uPerspMatrix, false, T.perspMatrix);
-    gl.uniformMatrix4fv(T.shaderProgram.uniforms.uCameraMatrix, false, T.camera.M);
+    for (var name in T.shaderPrograms) {
+        var shader = T.shaderPrograms[name];
 
-    gl.uniform3fv(T.shaderProgram.uniforms.uLightDir, T.globalLightDir);
+        gl.uniformMatrix4fv(shader.uniforms.uPerspMatrix, false, T.perspMatrix);
+        gl.uniformMatrix4fv(shader.uniforms.uCameraMatrix, false, T.camera.M);
 
-    gl.uniform1i(T.shaderProgram.uniforms.uSampler, 0);
+        gl.uniform3fv(shader.uniforms.uLightDir, T.globalLightDir);
+
+        gl.uniform1i(shader.uniforms.uSampler, 0);
+    }
 };
 
 T.addGameObject = function(info) {
@@ -195,8 +245,6 @@ T.draw = function() {
 
     T.setGlobalUniforms();
 
-    var attributes = T.shaderProgram.attributes;
-
     for (var i = 0; i < T.gameObjects.length; ++i) {
         var obj = T.gameObjects[i];
 
@@ -210,6 +258,10 @@ T.draw = function() {
 
             var part = modelData.parts[partId];
 
+            var shader = T.shaderPrograms[part.shaderName];
+
+            gl.useProgram(shader.program);
+
             var objPart = obj.parts[part.partName];
 
             var M;
@@ -220,11 +272,11 @@ T.draw = function() {
                 M = obj.M;
             }
 
-            gl.uniformMatrix4fv(T.shaderProgram.uniforms.uInitModelMatrix, false, modelData.params.M);
-            gl.uniformMatrix4fv(T.shaderProgram.uniforms.uModelMatrix, false, M);
+            gl.uniformMatrix4fv(shader.uniforms.uInitModelMatrix, false, modelData.params.M);
+            gl.uniformMatrix4fv(shader.uniforms.uModelMatrix, false, M);
 
-            for (var attrName in attributes) {
-                var pointer = attributes[attrName];
+            for (var attrName in shader.attributes) {
+                var pointer = shader.attributes[attrName];
                 var bufferInfo = part.buffers[attrName];
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.buffer);
