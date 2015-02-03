@@ -136,13 +136,14 @@ T.initPerspectiveMatrix = function() {
 };
 
 T.initCameraMatrix = function() {
-    var M = T.cameraMatrix = mat4.create();
-    mat4.translate(M, M, [0, 0, -2]);
+    T.camera = {
+        M: mat4.create()
+    };
 };
 
 T.setGlobalUniforms = function() {
     gl.uniformMatrix4fv(T.shaderProgram.uniforms.uPerspMatrix, false, T.perspMatrix);
-    gl.uniformMatrix4fv(T.shaderProgram.uniforms.uCameraMatrix, false, T.cameraMatrix);
+    gl.uniformMatrix4fv(T.shaderProgram.uniforms.uCameraMatrix, false, T.camera.M);
 
     gl.uniform3fv(T.shaderProgram.uniforms.uLightDir, T.globalLightDir);
 
@@ -246,12 +247,26 @@ T.updateGameObjectMatrix = function(obj, inLink) {
     if (obj.dir) {
         var dirQ = quat.create();
 
-        quat.rotationTo(dirQ, [0, 0, -1], tank.dir);
+        quat.rotationTo(dirQ, [0, 0, -1], obj.dir);
 
         var rotM = mat4.create();
         mat4.fromQuat(rotM, dirQ);
 
         mat4.mul(M, M, rotM);
+
+        var cameraLoc = vec3.clone(obj.pos);
+
+        var deltaLoc = vec3.clone(obj.dir);
+
+        vec3.scale(deltaLoc, deltaLoc, 10);
+        vec3.sub(cameraLoc, cameraLoc, deltaLoc);
+
+        var lookAt = vec3.clone(obj.pos);
+
+        cameraLoc[1] += 8;
+        lookAt[1] += 4;
+
+        mat4.lookAt(T.camera.M, cameraLoc, lookAt, [0, 1, 0]);
     } else {
         mat4.rotateX(M, M, obj.rot[0]);
         mat4.rotateY(M, M, obj.rot[1]);
@@ -335,9 +350,9 @@ T.updateInputData = function() {
     var a = 0;
 
     if (state.arrowRight && !state.arrowLeft) {
-        a = 0.1;
-    } else if (state.arrowLeft) {
         a = -0.1;
+    } else if (state.arrowLeft) {
+        a = 0.1;
     }
 
     if (a) {
