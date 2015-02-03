@@ -84,10 +84,11 @@ void main(void) {
 }
 </script>
 <script type="application/x-shader" class="fragment-shader" data-name="repeat"
-        data-uniforms="uSampler">
+        data-uniforms="uSampler uScale">
 precision mediump float;
 
 uniform sampler2D uSampler;
+uniform float uScale;
 
 varying vec3 lightDir;
 varying vec3 normal;
@@ -95,7 +96,7 @@ varying vec2 uvs;
 
 void main(void) {
     float intens = 1.0;//dot(lightDir, normalize(normal));
-    vec4 tex = texture2D(uSampler, uvs);
+    vec4 tex = texture2D(uSampler, vec2(uvs.x * uScale, uvs.y * uScale));
 
     gl_FragColor = vec4(tex.r * intens, tex.g * intens, tex.b * intens, 1.0);
 }

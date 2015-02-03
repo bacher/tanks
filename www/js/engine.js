@@ -12,6 +12,8 @@ T.initShaders = function() {
 
         var shader = T.shaderPrograms[name] = {
             program: gl.createProgram(),
+            dbgVertexCode: vertexInfo.code,
+            dbgFragmentCode: fragmentInfo.code,
             attributes: {},
             uniforms: {}
         };
@@ -57,6 +59,7 @@ T.getShader = function(name, clas, type) {
 
     return {
         shader: shader,
+        code: info.code,
         uniforms: info.uniforms,
         attributes: info.attributes
     };
@@ -180,8 +183,8 @@ T.initTexture = function(img) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
     return texture;
 };
@@ -282,6 +285,10 @@ T.draw = function() {
 
             gl.uniformMatrix4fv(shader.uniforms.uInitModelMatrix, false, modelData.params.M || identifyM);
             gl.uniformMatrix4fv(shader.uniforms.uModelMatrix, false, M);
+
+            if (shader.uniforms.uScale) {
+                gl.uniform1f(shader.uniforms.uScale, 50);
+            }
 
             for (var attrName in shader.attributes) {
                 var pointer = shader.attributes[attrName];
