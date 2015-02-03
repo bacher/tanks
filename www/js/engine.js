@@ -30,6 +30,7 @@ T.initShaders = function() {
     T.initUniform('uPerspMatrix');
     T.initUniform('uCameraMatrix');
     T.initUniform('uModelMatrix');
+    T.initUniform('uInitModelMatrix');
     T.initUniform('uLightDir');
     T.initUniform('uSampler');
 };
@@ -218,6 +219,7 @@ T.draw = function() {
                 M = obj.M;
             }
 
+            gl.uniformMatrix4fv(T.shaderProgram.uniforms.uInitModelMatrix, false, modelData.params.M);
             gl.uniformMatrix4fv(T.shaderProgram.uniforms.uModelMatrix, false, M);
 
             for (var attrName in attributes) {
@@ -240,9 +242,21 @@ T.updateGameObjectMatrix = function(obj, inLink) {
 
     mat4.translate(M, M, obj.pos);
     mat4.scale(M, M, obj.scale);
-    mat4.rotateX(M, M, obj.rot[0]);
-    mat4.rotateY(M, M, obj.rot[1]);
-    mat4.rotateZ(M, M, obj.rot[2]);
+
+    if (obj.dir) {
+        var dirQ = quat.create();
+
+        quat.rotationTo(dirQ, [0, 0, -1], tank.dir);
+
+        var rotM = mat4.create();
+        mat4.fromQuat(rotM, dirQ);
+
+        mat4.mul(M, M, rotM);
+    } else {
+        mat4.rotateX(M, M, obj.rot[0]);
+        mat4.rotateY(M, M, obj.rot[1]);
+        mat4.rotateZ(M, M, obj.rot[2]);
+    }
 
     if (!inLink) {
         var model = T.modelsData[obj.model];
@@ -272,33 +286,63 @@ function updateRecursively(partNames, parentM, parts) {
 
 T.logic = function() {
 
-    T.updateInput();
+    T.updateInputData();
 
 };
 
-T.updateInput = function() {
+T.updateInputData = function() {
     var state = T.input.keyState;
 
-    var move = [0, 0, 0];
+    var dir = 0;
 
     if (state.forward && !state.back) {
-        move[2] += 1;
+        dir = 1;
     } else if (state.back) {
-        move[2] -= 1;
+        dir = -1;
     }
+
+    if (dir) {
+        var deltaPos = vec3.clone(tank.dir);
+
+        vec3.scale(deltaPos, deltaPos, T.player.tankSpeed);
+
+        if (dir === -1) {
+            vec3.negate(deltaPos, deltaPos);
+        }
+
+        vec3.add(tank.pos, tank.pos, deltaPos);
+
+        tank.dirty = true;
+    }
+
+    var d = 0;
 
     if (state.left && !state.right) {
-        move[0] += 1;
+        d = 0.1;
     } else if (state.right) {
-        move[0] -= 1;
+        d = -0.1
     }
 
-    if (move[0] || move[2]) {
-        vec3.normalize(move, move);
+    if (d) {
+        var rotM = mat4.create();
+        mat4.rotateY(rotM, rotM, d);
 
-        move[0] *= T.cameraSpeed;
-        move[2] *= T.cameraSpeed;
+        vec3.transformMat4(tank.dir, tank.dir, rotM);
 
-        mat4.translate(T.cameraMatrix, T.cameraMatrix, move);
+        tank.dirty = true;
     }
+
+    var a = 0;
+
+    if (state.arrowRight && !state.arrowLeft) {
+        a = 0.1;
+    } else if (state.arrowLeft) {
+        a = -0.1;
+    }
+
+    if (a) {
+        tank.parts['Turret_2'].rot[1] += a;
+        tank.dirty = true;
+    }
+
 };

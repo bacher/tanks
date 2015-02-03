@@ -4,7 +4,11 @@
         87: 'forward',
         83: 'back',
         65: 'left',
-        68: 'right'
+        68: 'right',
+        38: 'arrowForward',
+        40: 'arrowBack',
+        39: 'arrowRight',
+        37: 'arrowLeft'
     };
 
     T.captureInput = function() {
