@@ -1,5 +1,7 @@
 'use strict';
 
+ var identifyM = mat4.create();
+
 T.initShaders = function() {
     T.shaderPrograms = {};
 
@@ -116,19 +118,19 @@ T.initBuffers = function() {
                 shaderName: 'repeat',
                 buffers : {
                     aVertexPosition: {
-                        buffer: [
-                            -0.5, 0, -0.5,
-                            0.5, 0, -0.5,
-                            0.5, 0, 0.5,
+                        buffer: T.initBuffer([
+                            -5, 0, -5,
+                            5, 3, -5,
+                            5, 0, 5,
 
-                            0.5, 0, 0.5,
-                            -0.5, 0, 0.5,
-                            -0.5, 0, -0.5
-                        ],
+                            5, 0, 5,
+                            -5, 0, 5,
+                            -5, -1, -5
+                        ]),
                         size: 3
                     },
                     aVertexUvs: {
-                        buffer: [
+                        buffer: T.initBuffer([
                             0, 0,
                             1, 0,
                             1, 1,
@@ -136,12 +138,20 @@ T.initBuffers = function() {
                             1, 1,
                             0, 1,
                             0, 0
-                        ],
+                        ]),
                         size: 2
+                    },
+                    aVertexNormal: {
+                        buffer: T.initBuffer([0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0]),
+                        size: 3
                     }
                 },
                 polygonsCount: 2
             });
+
+            //var M = modelData.params.M = mat4.create();
+
+            //mat4.scale(M, M, 100);
         }
 
         for (var texType in modelData.images) {
@@ -185,19 +195,17 @@ T.initCameraMatrix = function() {
     T.camera = {
         M: mat4.create()
     };
+
+    mat4.translate(T.camera.M, T.camera.M, [0, 5, 0]);
 };
 
-T.setGlobalUniforms = function() {
-    for (var name in T.shaderPrograms) {
-        var shader = T.shaderPrograms[name];
+T.setGlobalUniforms = function(shader) {
+    gl.uniformMatrix4fv(shader.uniforms.uPerspMatrix, false, T.perspMatrix);
+    gl.uniformMatrix4fv(shader.uniforms.uCameraMatrix, false, identifyM);//T.camera.M);
 
-        gl.uniformMatrix4fv(shader.uniforms.uPerspMatrix, false, T.perspMatrix);
-        gl.uniformMatrix4fv(shader.uniforms.uCameraMatrix, false, T.camera.M);
+    gl.uniform3fv(shader.uniforms.uLightDir, T.globalLightDir);
 
-        gl.uniform3fv(shader.uniforms.uLightDir, T.globalLightDir);
-
-        gl.uniform1i(shader.uniforms.uSampler, 0);
-    }
+    gl.uniform1i(shader.uniforms.uSampler, 0);
 };
 
 T.addGameObject = function(info) {
@@ -243,8 +251,6 @@ T.draw = function() {
     gl.viewport(0, 0, T.viewPortWidth, T.viewPortHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    T.setGlobalUniforms();
-
     for (var i = 0; i < T.gameObjects.length; ++i) {
         var obj = T.gameObjects[i];
 
@@ -272,10 +278,13 @@ T.draw = function() {
                 M = obj.M;
             }
 
-            gl.uniformMatrix4fv(shader.uniforms.uInitModelMatrix, false, modelData.params.M);
+            T.setGlobalUniforms(shader);
+
+            gl.uniformMatrix4fv(shader.uniforms.uInitModelMatrix, false, modelData.params.M || identifyM);
             gl.uniformMatrix4fv(shader.uniforms.uModelMatrix, false, M);
 
             for (var attrName in shader.attributes) {
+                debugger
                 var pointer = shader.attributes[attrName];
                 var bufferInfo = part.buffers[attrName];
 
@@ -283,7 +292,7 @@ T.draw = function() {
                 gl.vertexAttribPointer(pointer, bufferInfo.size, gl.FLOAT, false, 0, 0);
             }
 
-            gl.bindTexture(gl.TEXTURE_2D, modelData.textures.diffuse[part.partName]);
+            //gl.bindTexture(gl.TEXTURE_2D, modelData.textures.diffuse[part.partName]);
 
             gl.drawArrays(gl.TRIANGLES, 0, part.polygonsCount);
         }
@@ -306,19 +315,21 @@ T.updateGameObjectMatrix = function(obj, inLink) {
 
         mat4.mul(M, M, rotM);
 
-        var cameraLoc = vec3.clone(obj.pos);
+        if (obj.cameraFix) {
+            var cameraLoc = vec3.clone(obj.pos);
 
-        var deltaLoc = vec3.clone(obj.dir);
+            var deltaLoc = vec3.clone(obj.dir);
 
-        vec3.scale(deltaLoc, deltaLoc, 10);
-        vec3.sub(cameraLoc, cameraLoc, deltaLoc);
+            vec3.scale(deltaLoc, deltaLoc, 10);
+            vec3.sub(cameraLoc, cameraLoc, deltaLoc);
 
-        var lookAt = vec3.clone(obj.pos);
+            var lookAt = vec3.clone(obj.pos);
 
-        cameraLoc[1] += 8;
-        lookAt[1] += 4;
+            cameraLoc[1] += 8;
+            lookAt[1] += 4;
 
-        mat4.lookAt(T.camera.M, cameraLoc, lookAt, [0, 1, 0]);
+            mat4.lookAt(T.camera.M, cameraLoc, lookAt, [0, 1, 0]);
+        }
     } else {
         mat4.rotateX(M, M, obj.rot[0]);
         mat4.rotateY(M, M, obj.rot[1]);

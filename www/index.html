@@ -54,7 +54,7 @@ void main(void) {
     float intens = 1.0;//dot(lightDir, normalize(normal));
     vec4 tex = texture2D(uSampler, uvs);
 
-    gl_FragColor = vec4(tex.r * intens, tex.g * intens, tex.b * intens, 1.0);
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);//vec4(tex.r * intens, tex.g * intens, tex.b * intens, 1.0);
 }
 </script>
 
@@ -80,7 +80,7 @@ void main(void) {
     lightDir = uLightDir;
     uvs = aVertexUvs;
 
-    gl_Position = uPerspMatrix * uCameraMatrix * uModelMatrix * uInitModelMatrix * vec4(aVertexPosition, 1.0);
+    gl_Position = uPerspMatrix * uCameraMatrix * vec4(aVertexPosition, 1.0);
 }
 </script>
 <script type="application/x-shader" class="fragment-shader" data-name="repeat"
@@ -94,10 +94,10 @@ varying vec3 normal;
 varying vec2 uvs;
 
 void main(void) {
-    float intens = 1.0;//dot(lightDir, normalize(normal));
-    vec4 tex = texture2D(uSampler, uvs);
+    //float intens = 1.0;//dot(lightDir, normalize(normal));
+    //vec4 tex = texture2D(uSampler, uvs);
 
-    gl_FragColor = vec4(tex.r * intens, tex.g * intens, tex.b * intens, 1.0);
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);//vec4(tex.r * intens, tex.g * intens, tex.b * intens, 1.0);
 }
 </script>
 </body>

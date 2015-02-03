@@ -4,9 +4,6 @@ T.loadResources = function() {
     T.createModel('ausfb');
     T.createModel('land');
 
-    var initModelM = mat4.create();
-    //mat4.rotateY(initModelM, initModelM, Math.PI / 2);
-
     return Promise.all([
         //T.loadModel('models/african_head/african_head.obj.json'),
         //T.loadTexture('models/african_head/african_head_diffuse.png'),
@@ -15,8 +12,7 @@ T.loadResources = function() {
                 Body_2: {
                     Turret_2: null
                 }
-            },
-            M: initModelM
+            }
         }),
         T.loadTexture('models/ausfb/Turret.png', 'ausfb', 'diffuse', 'Turret'),
         T.loadTexture('models/ausfb/Turret_2.png', 'ausfb', 'diffuse', 'Turret_2'),
@@ -24,7 +20,7 @@ T.loadResources = function() {
         T.loadTexture('models/ausfb/Body_1.png', 'ausfb', 'diffuse', 'Body_1'),
         T.loadTexture('models/ausfb/Body_2.png', 'ausfb', 'diffuse', 'Body_2'),
 
-        T.loadTexture('models/land/land-1.jpg', 'land', 'diffuse', 'land')
+        T.loadTexture('models/land/uv_test.jpg', 'land', 'diffuse', 'land')
     ]);
 };
 

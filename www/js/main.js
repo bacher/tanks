@@ -33,28 +33,29 @@ $(function() {
 
         T.initBuffers();
 
-        //var land = T.addGameObject({
-        //    model: 'land'
-        //});
+        var land = T.addGameObject({
+            model: 'land'
+        });
 
-        T.player = {
-            tank: T.addGameObject({
-                model: 'ausfb',
-                pos: [0, -1, -5]
-            }),
-            tankSpeed: 1
-        };
-
-        window.tank = T.player.tank;
-
-        tank.parts['Turret_2'].rot[1] = deg(45);
-
-        tank.dir = [0, 0, -1];
+        //T.player = {
+        //    tank: T.addGameObject({
+        //        model: 'ausfb',
+        //        pos: [0, -1, -5]
+        //    }),
+        //    tankSpeed: 1
+        //};
+        //
+        //window.tank = T.player.tank;
+        //
+        //tank.parts['Turret_2'].rot[1] = deg(45);
+        //
+        //tank.dir = [0, 0, -1];
+        //tank.cameraFix = true;
 
         T.captureInput();
 
-        setInterval(T.logic, 1000 / 30);
-        setInterval(T.draw, 1000 / 15);
+        setInterval(T.logic, 1000 / 3);
+        setInterval(T.draw, 1000 / 1);
 
     });
 
