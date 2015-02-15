@@ -1,13 +1,13 @@
 
 T.initCanvas = function() {
-    var $body = $('BODY');
+    var $window = $(window);
     var $canvas = $('#game');
 
     var canvas = T.canvas = $canvas[0];
 
     window.gl = canvas.getContext('webgl');
 
-    $body.on('resize', T.resizeViewPort);
+    $window.on('resize', _.debounce(T.resizeViewPort, 200));
 
     T.resizeViewPort();
 };
@@ -17,6 +17,8 @@ T.resizeViewPort = function() {
 
     T.viewPortWidth = T.canvas.width = $body.width();
     T.viewPortHeight = T.canvas.height = $body.height();
+
+    T.initPerspectiveMatrix();
 };
 
 T.getShaderInfo = function(name, clas) {
