@@ -251,6 +251,8 @@ function extractPartNames(link, storage) {
 }
 
 T.draw = function() {
+    if (document.hidden) return;
+
     gl.viewport(0, 0, T.viewPortWidth, T.viewPortHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 

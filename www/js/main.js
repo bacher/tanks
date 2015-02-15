@@ -53,8 +53,6 @@ $(function() {
 
         window.tank = T.player.tank;
 
-        tank.parts['Turret_2'].rot[1] = deg(45);
-
         tank.dir = [0, 0, -1];
         tank.cameraFix = true;
 
