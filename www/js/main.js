@@ -6,7 +6,6 @@ var T = {
     input: {
         keyState: {}
     },
-    cameraSpeed: 0.1,
     fps: 60,
 
     pageParams: {}
@@ -43,7 +42,6 @@ $(function() {
     T.initWebGL();
 
     T.initPerspectiveMatrix();
-    T.initCameraMatrix();
 
     T.globalLightDir = vec3.create();
     T.globalLightDir[2] = 1;
@@ -62,18 +60,21 @@ $(function() {
             pos: [0, 5, 0]
         });
 
-        T.player = {
-            tank: T.addGameObject({
-                model: 'ausfb',
-                pos: [0, 0, 0]
-            }),
-            tankSpeed: 1
-        };
-
-        window.tank = T.player.tank;
+        var tank = T.addGameObject({
+            model: 'ausfb',
+            pos: [0, 0, 0]
+        });
 
         tank.dir = [0, 0, -1];
-        tank.cameraFix = true;
+
+        T.player = {
+            speed: 1
+        };
+
+        T.createCameraObject({
+            pos: [0, 0, 0],
+            dir: [0, 0, -1]
+        });
 
         T.captureInput();
 

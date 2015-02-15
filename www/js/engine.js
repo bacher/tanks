@@ -75,7 +75,7 @@ T.initUniform = function(shader, name) {
 };
 
 T.initWebGL = function() {
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(0, 0, 0, 1);
     gl.enable(gl.DEPTH_TEST);
 };
 
@@ -194,17 +194,9 @@ T.initPerspectiveMatrix = function() {
     mat4.perspective(M, Math.PI / 3, T.viewPortWidth / T.viewPortHeight, 0.1, 100.0);
 };
 
-T.initCameraMatrix = function() {
-    T.camera = {
-        M: mat4.create()
-    };
-
-    mat4.translate(T.camera.M, T.camera.M, [0, 0, -7]);
-};
-
 T.setGlobalUniforms = function(shader) {
     gl.uniformMatrix4fv(shader.uniforms.uPerspMatrix, false, T.perspMatrix);
-    gl.uniformMatrix4fv(shader.uniforms.uCameraMatrix, false, T.camera.M);
+    gl.uniformMatrix4fv(shader.uniforms.uCameraMatrix, false, T.player.camera.M);
 
     gl.uniform3fv(shader.uniforms.uLightDir, T.globalLightDir);
 
@@ -232,6 +224,15 @@ T.addGameObject = function(info) {
     return obj;
 };
 
+T.createCameraObject = function(info) {
+    T.player.camera = {
+        pos: info.pos,
+        dir: info.dir,
+        dirty: true,
+        M: null
+    };
+};
+
 function extractPartNames(link, storage) {
     for (var partName in link) {
         if (!storage[partName]) {
@@ -255,6 +256,10 @@ T.draw = function() {
 
     gl.viewport(0, 0, T.viewPortWidth, T.viewPortHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    if (T.player.camera.dirty) {
+        T.updateGameObjectMatrix(T.player.camera);
+    }
 
     for (var i = 0; i < T.gameObjects.length; ++i) {
         var obj = T.gameObjects[i];
@@ -311,7 +316,10 @@ T.updateGameObjectMatrix = function(obj, inLink) {
     var M = obj.M = mat4.create();
 
     mat4.translate(M, M, obj.pos);
-    mat4.scale(M, M, obj.scale);
+
+    if (obj.scale) {
+        mat4.scale(M, M, obj.scale);
+    }
 
     if (obj.dir) {
         var dirQ = quat.create();
@@ -323,28 +331,13 @@ T.updateGameObjectMatrix = function(obj, inLink) {
 
         mat4.mul(M, M, rotM);
 
-        if (obj.cameraFix) {
-            var cameraLoc = vec3.clone(obj.pos);
-
-            var deltaLoc = vec3.clone(obj.dir);
-
-            vec3.scale(deltaLoc, deltaLoc, 10);
-            vec3.sub(cameraLoc, cameraLoc, deltaLoc);
-
-            var lookAt = vec3.clone(obj.pos);
-
-            cameraLoc[1] += 8;
-            lookAt[1] += 4;
-
-            mat4.lookAt(T.camera.M, cameraLoc, lookAt, [0, 1, 0]);
-        }
     } else {
         mat4.rotateX(M, M, obj.rot[0]);
         mat4.rotateY(M, M, obj.rot[1]);
         mat4.rotateZ(M, M, obj.rot[2]);
     }
 
-    if (!inLink) {
+    if (!inLink && obj.model) {
         var model = T.modelsData[obj.model];
 
         if (model.params.link) {
@@ -388,53 +381,17 @@ T.updateInputData = function() {
     }
 
     if (dir) {
-        var deltaPos = vec3.clone(tank.dir);
+        var deltaPos = vec3.clone(T.player.camera.dir);
 
-        vec3.scale(deltaPos, deltaPos, T.player.tankSpeed);
+        vec3.scale(deltaPos, deltaPos, T.player.speed);
 
-        if (dir === -1) {
+        if (dir === 1) {
             vec3.negate(deltaPos, deltaPos);
         }
 
-        vec3.add(tank.pos, tank.pos, deltaPos);
+        vec3.add(T.player.camera.pos, T.player.camera.pos, deltaPos);
 
-        tank.dirty = true;
-    }
-
-    var d = 0;
-
-    if (state.left && !state.right) {
-        d = 0.1;
-    } else if (state.right) {
-        d = -0.1
-    }
-
-    if (d) {
-        var rotM = mat4.create();
-        mat4.rotateY(rotM, rotM, d);
-
-        vec3.transformMat4(tank.dir, tank.dir, rotM);
-
-        tank.dirty = true;
-    }
-
-    var a = 0;
-
-    if (state.arrowRight && !state.arrowLeft) {
-        a = -0.1;
-    } else if (state.arrowLeft) {
-        a = 0.1;
-    }
-
-    if (a) {
-        tank.parts['Turret_2'].rot[1] += a;
-        tank.dirty = true;
-    }
-
-    // Shooting
-
-    if (state.space) {
-
+        T.player.camera.dirty = true;
     }
 
 };
