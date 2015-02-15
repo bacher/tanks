@@ -372,24 +372,33 @@ T.logic = function() {
 T.updateInputData = function() {
     var state = T.input.keyState;
 
-    var dir = 0;
+    var move = [0, 0, 0];
 
     if (state.forward && !state.back) {
-        dir = 1;
+        move[2] = 1;
     } else if (state.back) {
-        dir = -1;
+        move[2] = -1;
     }
 
-    if (dir) {
-        var deltaPos = vec3.clone(T.player.camera.dir);
+    if (state.left && !state.right) {
+        move[0] = 1;
+    } else if (state.right) {
+        move[0] = -1;
+    }
 
-        vec3.scale(deltaPos, deltaPos, T.player.speed);
+    if (move[0] || move[2]) {
+        var cameraDir = vec3.clone(T.player.camera.dir);
 
-        if (dir === 1) {
-            vec3.negate(deltaPos, deltaPos);
-        }
+        // Убираем смещение по вертикали
+        cameraDir[1] = 0;
 
-        vec3.add(T.player.camera.pos, T.player.camera.pos, deltaPos);
+        vec3.normalize(move, move);
+
+        vec3.scale(move, move, T.player.speed);
+
+        //vec3.
+
+        vec3.add(T.player.camera.pos, T.player.camera.pos, move);
 
         T.player.camera.dirty = true;
     }
