@@ -6,8 +6,27 @@ var T = {
     input: {
         keyState: {}
     },
-    cameraSpeed: 0.1
+    cameraSpeed: 0.1,
+    fps: 60,
+
+    pageParams: {}
 };
+
+
+location.search.substr(1).split('&').forEach(function(param) {
+    var pair = param.split('=');
+
+    if (pair.length > 1) {
+        T.pageParams[pair[0]] = pair[1];
+    } else {
+        T.pageParams[pair[0]] = true;
+    }
+});
+
+if (T.pageParams.fps) {
+    T.fps = Number(T.pageParams.fps);
+}
+
 
 //T.loadModels.push(
 //    'african_head',
@@ -58,8 +77,8 @@ $(function() {
 
         T.captureInput();
 
-        setInterval(T.logic, 1000 / 30);
-        setInterval(T.draw, 1000 / 10);
+        setInterval(T.logic, 1000 / ((T.fps) * 1.5));
+        setInterval(T.draw, 1000 / T.fps);
 
     });
 

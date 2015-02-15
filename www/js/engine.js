@@ -431,4 +431,10 @@ T.updateInputData = function() {
         tank.dirty = true;
     }
 
+    // Shooting
+
+    if (state.space) {
+
+    }
+
 };
