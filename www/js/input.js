@@ -5,10 +5,10 @@
         83: 'back',
         65: 'left',
         68: 'right',
-        //38: 'arrowForward',
-        //40: 'arrowBack',
-        //39: 'arrowRight',
-        //37: 'arrowLeft',
+        38: 'arrowForward',
+        40: 'arrowBack',
+        39: 'arrowRight',
+        37: 'arrowLeft',
         32: 'space'
     };
 
@@ -29,6 +29,17 @@
                     e.preventDefault();
                     e.stopPropagation();
                 }
+            })
+            .on('click', function() {
+                this.requestPointerLock();
+            })
+            .on('mousemove', function(e) {
+                e = e.originalEvent;
+
+                T.rotateCamera({
+                    x: e.webkitMovementX / 100,
+                    y: e.webkitMovementY / 100
+                });
             });
     };
 })();

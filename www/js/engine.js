@@ -1,6 +1,6 @@
 'use strict';
 
- var identifyM = mat4.create();
+var identifyM = mat4.create();
 
 T.initShaders = function() {
     T.shaderPrograms = {};
@@ -228,8 +228,13 @@ T.createCameraObject = function(info) {
     T.player.camera = {
         pos: info.pos,
         dir: info.dir,
+        rot: info.rot,
         dirty: true,
-        M: null
+        M: null,
+        rotation: {
+            y: 0,
+            z: 0
+        }
     };
 };
 
@@ -250,6 +255,19 @@ function extractPartNames(link, storage) {
         }
     }
 }
+
+T.rotateCamera = function(params) {
+    var camera = T.player.camera;
+
+    camera.rot[1] += params.x;
+
+    camera.rot[0] = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rot[0] + params.y));
+
+    console.log(camera.pos);
+    camera.dir = makeDir(camera.rot);
+
+    camera.dirty = true;
+};
 
 T.draw = function() {
     if (document.hidden) return;
@@ -305,7 +323,9 @@ T.draw = function() {
                 gl.vertexAttribPointer(pointer, bufferInfo.size, gl.FLOAT, false, 0, 0);
             }
 
-            gl.bindTexture(gl.TEXTURE_2D, modelData.textures.diffuse[part.partName]);
+            if (modelData.textures.diffuse) {
+                gl.bindTexture(gl.TEXTURE_2D, modelData.textures.diffuse[part.partName]);
+            }
 
             gl.drawArrays(gl.TRIANGLES, 0, part.verticesCount);
         }
@@ -315,26 +335,14 @@ T.draw = function() {
 T.updateGameObjectMatrix = function(obj, inLink) {
     var M = obj.M = mat4.create();
 
+    mat4.rotateZ(M, M, obj.rot[2]);
+    mat4.rotateX(M, M, obj.rot[0]);
+    mat4.rotateY(M, M, obj.rot[1]);
+
     mat4.translate(M, M, obj.pos);
 
     if (obj.scale) {
         mat4.scale(M, M, obj.scale);
-    }
-
-    if (obj.dir) {
-        var dirQ = quat.create();
-
-        quat.rotationTo(dirQ, [0, 0, -1], obj.dir);
-
-        var rotM = mat4.create();
-        mat4.fromQuat(rotM, dirQ);
-
-        mat4.mul(M, M, rotM);
-
-    } else {
-        mat4.rotateX(M, M, obj.rot[0]);
-        mat4.rotateY(M, M, obj.rot[1]);
-        mat4.rotateZ(M, M, obj.rot[2]);
     }
 
     if (!inLink && obj.model) {
@@ -387,20 +395,38 @@ T.updateInputData = function() {
     }
 
     if (move[0] || move[2]) {
-        var cameraDir = vec3.clone(T.player.camera.dir);
-
-        // Убираем смещение по вертикали
-        cameraDir[1] = 0;
+        //var cameraDir = vec3.clone(T.player.camera.dir);
 
         vec3.normalize(move, move);
 
         vec3.scale(move, move, T.player.speed);
 
-        //vec3.
+        vec3.rotateZ(move, move, [0, 0, 0], -T.player.camera.rot[2]);
+        vec3.rotateX(move, move, [0, 0, 0], -T.player.camera.rot[0]);
+        vec3.rotateY(move, move, [0, 0, 0], -T.player.camera.rot[1]);
 
         vec3.add(T.player.camera.pos, T.player.camera.pos, move);
 
         T.player.camera.dirty = true;
     }
 
+    if (state.arrowRight) {
+        T.player.camera.dir[0] += 0.1;
+
+        T.player.camera.dirty = true;
+
+    }
+
 };
+
+function makeDir(rot) {
+    var dir = [0, 0, -1];
+
+    var emptyPos = [0, 0, 0];
+
+    vec3.rotateY(dir, dir, emptyPos, rot[1]);
+    vec3.rotateX(dir, dir, emptyPos, rot[0]);
+    vec3.rotateZ(dir, dir, emptyPos, rot[2]);
+
+    return dir;
+}

@@ -49,6 +49,8 @@ T.getShaderInfo = function(name, clas) {
 };
 
 T.extractPolygonsFromJSON = function(model) {
+    var isDust2 = (model.metadata.sourceFile === 'de_dust2.obj');
+
     var facesCount = model.metadata.faces;
     var materialsCount = model.metadata.materials;
 
@@ -61,6 +63,11 @@ T.extractPolygonsFromJSON = function(model) {
     var data = {
         parts: []
     };
+
+    if (isDust2) {
+        valuesPerFace = 10;
+
+    }
 
     for (var m = 0; m < materialsCount; ++m) {
         data.parts.push({
@@ -76,6 +83,9 @@ T.extractPolygonsFromJSON = function(model) {
         var offset = i * valuesPerFace;
 
         var matId = model.faces[offset + 4];
+        if (isDust2) {
+            matId = 0;
+        }
         var vertices = [model.faces[offset + 1], model.faces[offset + 2], model.faces[offset + 3]];
         var uvs = [model.faces[offset + 5], model.faces[offset + 6], model.faces[offset + 7]];
 

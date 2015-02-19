@@ -50,6 +50,10 @@ $(function() {
 
         T.initBuffers();
 
+        var map = T.addGameObject({
+            model: 'de_dust2'
+        });
+
         var land = T.addGameObject({
             model: 'land'
         });
@@ -73,7 +77,8 @@ $(function() {
 
         T.createCameraObject({
             pos: [0, 0, 0],
-            dir: [0, 0, -1]
+            rot: [0, 0, 0],
+            dir: [0, 0, 1]
         });
 
         T.captureInput();

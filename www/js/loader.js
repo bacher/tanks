@@ -1,11 +1,16 @@
 
 T.loadResources = function() {
 
+    T.createModel('de_dust2');
+
     T.createModel('african_head');
     T.createModel('ausfb');
     T.createModel('land');
 
     return Promise.all([
+        T.loadModel('maps/de_dust2/de_dust2.obj.json', 'de_dust2'),
+        //T.loadTexture('models/land/uv_test.jpg', 'de_dust2', 'diffuse', 'de_dust2'),
+
         T.loadModel('models/african_head/african_head.obj.json', 'african_head'),
         T.loadTexture('models/african_head/african_head_diffuse.png', 'african_head', 'diffuse', 'default'),
 
