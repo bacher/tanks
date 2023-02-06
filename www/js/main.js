@@ -50,9 +50,11 @@ $(function() {
 
         T.initBuffers();
 
-        var map = T.addGameObject({
-            model: 'de_dust2'
-        });
+        // TODO: Is not working
+        // var map = T.addGameObject({
+        //     model: 'de_dust2',
+        //     scale: 0.01
+        // });
 
         var land = T.addGameObject({
             model: 'land'

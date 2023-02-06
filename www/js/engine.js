@@ -263,13 +263,16 @@ T.rotateCamera = function(params) {
 
     camera.rot[0] = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rot[0] + params.y));
 
-    console.log(camera.pos);
     camera.dir = makeDir(camera.rot);
 
     camera.dirty = true;
 };
 
 T.draw = function() {
+    if (T.stopGame) {
+        return;
+    }
+
     if (document.hidden) return;
 
     gl.viewport(0, 0, T.viewPortWidth, T.viewPortHeight);
@@ -312,7 +315,7 @@ T.draw = function() {
             gl.uniformMatrix4fv(shader.uniforms.uModelMatrix, false, M);
 
             if (shader.uniforms.uScale) {
-                gl.uniform1f(shader.uniforms.uScale, 50);
+                gl.uniform1f(shader.uniforms.uScale, 10);
             }
 
             for (var attrName in shader.attributes) {
@@ -373,7 +376,9 @@ function updateRecursively(partNames, parentM, parts) {
 
 T.logic = function() {
 
-    T.updateInputData();
+    if (!T.stopGame) {
+        T.updateInputData();
+    }
 
 };
 
@@ -430,3 +435,8 @@ function makeDir(rot) {
 
     return dir;
 }
+
+
+T.toggleMenu = function(show) {
+    $('.menu').toggleClass('hidden', !show);
+};

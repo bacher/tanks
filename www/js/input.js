@@ -12,6 +12,8 @@
         32: 'space'
     };
 
+    var captureRequested = false;
+
     T.captureInput = function() {
         $('BODY')
             .on('keydown', function(e) {
@@ -20,6 +22,12 @@
 
                     e.preventDefault();
                     e.stopPropagation();
+                }
+
+                if (e.which === 27) {
+                    T.stopGame = true;
+
+                    T.toggleMenu(true);
                 }
             })
             .on('keyup', function(e) {
@@ -32,14 +40,28 @@
             })
             .on('click', function() {
                 this.requestPointerLock();
+
+                captureRequested = true;
             })
             .on('mousemove', function(e) {
                 e = e.originalEvent;
 
-                T.rotateCamera({
-                    x: e.webkitMovementX / 100,
-                    y: e.webkitMovementY / 100
-                });
+                if (captureRequested) {
+                    T.rotateCamera({
+                        x: e.movementX / 100,
+                        y: e.movementY / 100
+                    });
+                }
+            })
+            .on('click', '#game-reset', function() {
+                T.toggleMenu(false);
+
+                T.player.camera.pos = [0, 0, 0];
+                T.player.camera.rot = [0, 0, 0];
+
+                T.player.camera.dirty = true;
+
+                T.stopGame = false;
             });
     };
 })();
